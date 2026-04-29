@@ -1,36 +1,42 @@
 export async function onRequest(context) {
   const { request, env } = context;
-  const url = new URL(request.url);
 
   const headers = {
-    'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Content-Type': 'application/json',
   };
 
-  const token = url.searchParams.get('token');
-  if (token !== (env.ADMIN_TOKEN || 'changeme')) {
-    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers });
   }
 
-  const site = url.searchParams.get('site') || '';
-  const limit = parseInt(url.searchParams.get('limit') || '50');
-  const status = url.searchParams.get('status') || '';
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ ok: false, error: 'POST only' }), { status: 405, headers });
+  }
 
   try {
-    let query = 'SELECT * FROM submissions';
-    const conditions = [];
-    const params = [];
+    const data = await request.json();
+    if (!data.name || !data.phone) {
+      return new Response(JSON.stringify({ ok: false, error: 'name and phone required' }), { status: 400, headers });
+    }
 
-    if (site) { conditions.push('site = ?'); params.push(site); }
-    if (status) { conditions.push('status = ?'); params.push(status); }
+    await env.DB.prepare(
+      'INSERT INTO submissions (site, name, phone, doctor, date, time, service, preorder, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime(\'now\'))'
+    ).bind(
+      data.site || 'unknown',
+      data.name,
+      data.phone,
+      data.doctor || '',
+      data.date || '',
+      data.time || '',
+      data.service || '',
+      data.preorder || '',
+      data.comment || ''
+    ).run();
 
-    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
-    query += ' ORDER BY created_at DESC LIMIT ?';
-    params.push(limit);
-
-    const result = await env.DB.prepare(query).bind(...params).all();
-
-    return new Response(JSON.stringify({ ok: true, data: result.results, count: result.results.length }), { status: 200, headers });
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
   } catch (err) {
     return new Response(JSON.stringify({ ok: false, error: err.message }), { status: 500, headers });
   }
