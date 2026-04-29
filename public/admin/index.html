@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заявки — Админка</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,sans-serif;background:#0f1117;color:#e0e0e0;min-height:100vh}
+.header{padding:24px 32px;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.header h1{font-size:1.3rem;font-weight:600;letter-spacing:0.02em}
+.header h1 span{color:#6bcbb4}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.controls input,.controls select{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:8px 14px;border-radius:8px;font-size:13px;outline:none}
+.controls input:focus,.controls select:focus{border-color:#6bcbb4}
+.controls button{background:#6bcbb4;color:#0f1117;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.controls button:hover{background:#8dd8c8}
+.stats{display:flex;gap:24px;padding:20px 32px;border-bottom:1px solid #1a1d27}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-num{font-size:1.5rem;font-weight:700;color:#6bcbb4}
+.stat-label{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.1em}
+.table-wrap{overflow-x:auto;padding:0 32px 32px}
+table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px}
+th{text-align:left;padding:12px 14px;color:#888;font-weight:500;text-transform:uppercase;font-size:11px;letter-spacing:0.08em;border-bottom:1px solid #222;position:sticky;top:0;background:#0f1117}
+td{padding:12px 14px;border-bottom:1px solid #1a1d27;vertical-align:top;max-width:200px;word-wrap:break-word}
+tr:hover td{background:#141620}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-new{background:rgba(107,203,180,0.15);color:#6bcbb4}
+.badge-done{background:rgba(100,100,100,0.15);color:#888}
+.site-tag{background:#1a1d27;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;color:#7ec8e3}
+.empty{text-align:center;padding:60px;color:#444;font-size:1rem}
+.login{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px}
+.login input{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:14px 20px;border-radius:10px;font-size:15px;width:280px;outline:none;text-align:center}
+.login button{background:#6bcbb4;color:#0f1117;border:none;padding:14px 40px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
+.login h2{font-size:1.1rem;color:#666;font-weight:400}
+@media(max-width:768px){.header,.stats,.table-wrap{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+
+<div class="login" id="loginScreen">
+  <h2>Введите пароль</h2>
+  <input type="password" id="tokenInput" placeholder="Токен" onkeydown="if(event.key==='Enter')doLogin()">
+  <button onclick="doLogin()">Войти</button>
+</div>
+
+<div id="app" style="display:none">
+  <div class="header">
+    <h1>📋 Заявки <span>Dashboard</span></h1>
+    <div class="controls">
+      <select id="siteFilter" onchange="loadData()">
+        <option value="">Все сайты</option>
+      </select>
+      <select id="statusFilter" onchange="loadData()">
+        <option value="">Все статусы</option>
+        <option value="new">Новые</option>
+        <option value="done">Обработанные</option>
+      </select>
+      <button onclick="loadData()">Обновить</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Сайт</th>
+          <th>Имя</th>
+          <th>Телефон</th>
+          <th>Врач / Мастер</th>
+          <th>Дата</th>
+          <th>Время</th>
+          <th>Услуга</th>
+          <th>Предзаказ</th>
+          <th>Комментарий</th>
+          <th>Создано</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">Заявок пока нет</div>
+  </div>
+</div>
+
+<script>
+let token = '';
+const BASE = window.location.origin;
+
+function doLogin() {
+  token = document.getElementById('tokenInput').value;
+  if (!token) return;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadData();
+}
+
+async function loadData() {
+  const site = document.getElementById('siteFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  let url = BASE + '/api/list?token=' + encodeURIComponent(token) + '&limit=200';
+  if (site) url += '&site=' + encodeURIComponent(site);
+  if (status) url += '&status=' + encodeURIComponent(status);
+
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if (!json.ok) {
+      alert('Ошибка: ' + (json.error || 'Неверный токен'));
+      return;
+    }
+
+    const data = json.data || [];
+
+    // Stats
+    const totalNew = data.filter(d => d.status === 'new').length;
+    document.getElementById('stats').innerHTML =
+      '<div class="stat"><div class="stat-num">' + data.length + '</div><div class="stat-label">Всего</div></div>' +
+      '<div class="stat"><div class="stat-num">' + totalNew + '</div><div class="stat-label">Новых</div></div>';
+
+    // Sites for filter
+    const sites = [...new Set(data.map(d => d.site))];
+    const siteFilter = document.getElementById('siteFilter');
+    const currentSite = siteFilter.value;
+    siteFilter.innerHTML = '<option value="">Все сайты</option>' +
+      sites.map(s => '<option value="' + s + '"' + (s === currentSite ? ' selected' : '') + '>' + s + '</option>').join('');
+
+    // Table
+    const tbody = document.getElementById('tbody');
+    if (!data.length) {
+      tbody.innerHTML = '';
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+    document.getElementById('empty').style.display = 'none';
+
+    tbody.innerHTML = data.map(function(d) {
+      const created = d.created_at ? new Date(d.created_at + 'Z').toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+      return '<tr>' +
+        '<td>' + d.id + '</td>' +
+        '<td><span class="site-tag">' + (d.site || '') + '</span></td>' +
+        '<td><strong>' + (d.name || '') + '</strong></td>' +
+        '<td>' + (d.phone || '') + '</td>' +
+        '<td>' + (d.doctor || '-') + '</td>' +
+        '<td>' + (d.date || '-') + '</td>' +
+        '<td>' + (d.time || '-') + '</td>' +
+        '<td>' + (d.service || '-') + '</td>' +
+        '<td>' + (d.preorder || '-') + '</td>' +
+        '<td>' + (d.comment || '-') + '</td>' +
+        '<td>' + created + '</td>' +
+        '<td><span class="badge badge-' + (d.status || 'new') + '">' + (d.status || 'new') + '</span></td>' +
+        '</tr>';
+    }).join('');
+  } catch (e) {
+    alert('Ошибка загрузки: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
