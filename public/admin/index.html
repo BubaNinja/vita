@@ -46,11 +46,9 @@ tr:hover td{background:#141620}
 
 <div id="app" style="display:none">
   <div class="header">
-    <h1>📋 Заявки <span>Dashboard</span></h1>
+    <h1>Заявки <span>Dashboard</span></h1>
     <div class="controls">
-      <select id="siteFilter" onchange="loadData()">
-        <option value="">Все сайты</option>
-      </select>
+      
       <select id="statusFilter" onchange="loadData()">
         <option value="">Все статусы</option>
         <option value="new">Новые</option>
@@ -67,7 +65,7 @@ tr:hover td{background:#141620}
       <thead>
         <tr>
           <th>#</th>
-          <th>Сайт</th>
+          
           <th>Имя</th>
           <th>Телефон</th>
           <th>Врач / Мастер</th>
@@ -123,11 +121,7 @@ async function loadData() {
       '<div class="stat"><div class="stat-num">' + totalNew + '</div><div class="stat-label">Новых</div></div>';
 
     // Sites for filter
-    const sites = [...new Set(data.map(d => d.site))];
-    const siteFilter = document.getElementById('siteFilter');
-    const currentSite = siteFilter.value;
-    siteFilter.innerHTML = '<option value="">Все сайты</option>' +
-      sites.map(s => '<option value="' + s + '"' + (s === currentSite ? ' selected' : '') + '>' + s + '</option>').join('');
+    
 
     // Table
     const tbody = document.getElementById('tbody');
@@ -139,12 +133,12 @@ async function loadData() {
     document.getElementById('empty').style.display = 'none';
 
     tbody.innerHTML = data.map(function(d) {
-      const created = d.created_at ? new Date(d.created_at + 'Z').toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+      const created = d.created_at ? new Date(d.created_at + 'Z').toLocaleString('ru-RU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).replace(' г.','') : '';
       return '<tr>' +
         '<td>' + d.id + '</td>' +
-        '<td><span class="site-tag">' + (d.site || '') + '</span></td>' +
+        
         '<td><strong>' + (d.name || '') + '</strong></td>' +
-        '<td>' + (d.phone || '') + '</td>' +
+        '<td><a href="tel:' + (d.phone || '') + '" style="color:#6bcbb4;text-decoration:none">' + (d.phone || '') + '</a></td>' +
         '<td>' + (d.doctor || '-') + '</td>' +
         '<td>' + (d.date || '-') + '</td>' +
         '<td>' + (d.time || '-') + '</td>' +
