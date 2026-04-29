@@ -8,13 +8,17 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0f1117;color:#e0e0e0;min-height:100vh}
 .header{padding:24px 32px;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.header h1{font-size:1.3rem;font-weight:600;letter-spacing:0.02em}
+.header h1{font-size:1.3rem;font-weight:600}
 .header h1 span{color:#6bcbb4}
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.controls input,.controls select{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:8px 14px;border-radius:8px;font-size:13px;outline:none}
-.controls input:focus,.controls select:focus{border-color:#6bcbb4}
+.controls select{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:8px 14px;border-radius:8px;font-size:13px;outline:none}
+.controls select:focus{border-color:#6bcbb4}
 .controls button{background:#6bcbb4;color:#0f1117;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
 .controls button:hover{background:#8dd8c8}
+.tabs{display:flex;gap:0;padding:0 32px;border-bottom:1px solid #222}
+.tab{padding:14px 24px;font-size:13px;font-weight:600;color:#666;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.tab:hover{color:#e0e0e0}
+.tab.active{color:#6bcbb4;border-bottom-color:#6bcbb4}
 .stats{display:flex;gap:24px;padding:20px 32px;border-bottom:1px solid #1a1d27}
 .stat{display:flex;flex-direction:column;gap:2px}
 .stat-num{font-size:1.5rem;font-weight:700;color:#6bcbb4}
@@ -27,13 +31,31 @@ tr:hover td{background:#141620}
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
 .badge-new{background:rgba(107,203,180,0.15);color:#6bcbb4}
 .badge-done{background:rgba(100,100,100,0.15);color:#888}
-.site-tag{background:#1a1d27;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;color:#7ec8e3}
 .empty{text-align:center;padding:60px;color:#444;font-size:1rem}
 .login{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px}
 .login input{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:14px 20px;border-radius:10px;font-size:15px;width:280px;outline:none;text-align:center}
 .login button{background:#6bcbb4;color:#0f1117;border:none;padding:14px 40px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
 .login h2{font-size:1.1rem;color:#666;font-weight:400}
-@media(max-width:768px){.header,.stats,.table-wrap{padding-left:16px;padding-right:16px}}
+.view{display:none}
+.view.active{display:block}
+.schedule{padding:20px 32px}
+.schedule-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.schedule-header h3{font-size:1rem;font-weight:600}
+.schedule-nav{display:flex;gap:6px}
+.schedule-nav button{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s}
+.schedule-nav button:hover,.schedule-nav button.act{background:#6bcbb4;color:#0f1117;border-color:#6bcbb4}
+.sched-grid{display:grid;grid-template-columns:120px repeat(7,1fr);gap:1px;background:#222;border-radius:8px;overflow:hidden}
+.sched-cell{background:#0f1117;padding:10px 6px;font-size:12px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px}
+.sched-header{background:#141620;font-weight:600;color:#888;font-size:11px;text-transform:uppercase}
+.sched-today{color:#6bcbb4}
+.sched-doctor{background:#141620;font-weight:600;color:#e0e0e0;align-items:flex-start;justify-content:center;padding-left:12px;font-size:12px}
+.sched-booked{background:rgba(107,203,180,0.06)}
+.sched-booking{background:rgba(107,203,180,0.15);border:1px solid rgba(107,203,180,0.2);border-radius:6px;padding:4px 8px;font-size:11px;width:100%;text-align:left}
+.sched-booking .bk-name{font-weight:600;color:#e0e0e0}
+.sched-booking .bk-svc{color:#6bcbb4;font-size:10px}
+.sched-booking .bk-time{color:#888;font-size:10px}
+.sched-free{color:#333;font-size:16px}
+@media(max-width:768px){.header,.stats,.table-wrap,.schedule,.tabs{padding-left:16px;padding-right:16px}.sched-grid{grid-template-columns:80px repeat(7,1fr)}}
 </style>
 </head>
 <body>
@@ -48,7 +70,6 @@ tr:hover td{background:#141620}
   <div class="header">
     <h1>Заявки <span>Dashboard</span></h1>
     <div class="controls">
-      
       <select id="statusFilter" onchange="loadData()">
         <option value="">Все статусы</option>
         <option value="new">Новые</option>
@@ -58,100 +79,140 @@ tr:hover td{background:#141620}
     </div>
   </div>
 
-  <div class="stats" id="stats"></div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('list',this)">Заявки</div>
+    <div class="tab" onclick="switchTab('schedule',this)">График</div>
+  </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          
-          <th>Имя</th>
-          <th>Телефон</th>
-          <th>Врач / Мастер</th>
-          <th>Дата</th>
-          <th>Время</th>
-          <th>Услуга</th>
-          <th>Предзаказ</th>
-          <th>Комментарий</th>
-          <th>Создано</th>
-          <th>Статус</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="empty" id="empty" style="display:none">Заявок пока нет</div>
+  <div class="view active" id="listView">
+    <div class="stats" id="stats"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Имя</th><th>Телефон</th><th>Врач</th><th>Дата</th><th>Время</th><th>Услуга</th><th>Предзаказ</th><th>Комментарий</th><th>Создано</th><th>Статус</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="empty" style="display:none">Заявок пока нет</div>
+    </div>
+  </div>
+
+  <div class="view" id="scheduleView">
+    <div class="schedule">
+      <div class="schedule-header">
+        <h3>Расписание</h3>
+        <div class="schedule-nav">
+          <button onclick="shiftWeek(-1)">&larr;</button>
+          <button class="act" onclick="shiftWeek(0)">Сегодня</button>
+          <button onclick="shiftWeek(1)">&rarr;</button>
+        </div>
+      </div>
+      <div id="schedGrid"></div>
+    </div>
   </div>
 </div>
 
 <script>
-let token = '';
-const BASE = window.location.origin;
+var token='',allData=[],weekOffset=0;
+var BASE=window.location.origin;
+var DOCTORS=['Алексей Морозов','Елена Светлова','Дмитрий Ковалёв'];
+var MO=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+var DA=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 
-function doLogin() {
-  token = document.getElementById('tokenInput').value;
-  if (!token) return;
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+function doLogin(){
+  token=document.getElementById('tokenInput').value;
+  if(!token)return;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
   loadData();
 }
-
-async function loadData() {
-  const site = document.getElementById('siteFilter').value;
-  const status = document.getElementById('statusFilter').value;
-  let url = BASE + '/api/list?token=' + encodeURIComponent(token) + '&limit=200';
-  if (site) url += '&site=' + encodeURIComponent(site);
-  if (status) url += '&status=' + encodeURIComponent(status);
-
-  try {
-    const res = await fetch(url);
-    const json = await res.json();
-
-    if (!json.ok) {
-      alert('Ошибка: ' + (json.error || 'Неверный токен'));
-      return;
-    }
-
-    const data = json.data || [];
-
-    // Stats
-    const totalNew = data.filter(d => d.status === 'new').length;
-    document.getElementById('stats').innerHTML =
-      '<div class="stat"><div class="stat-num">' + data.length + '</div><div class="stat-label">Всего</div></div>' +
-      '<div class="stat"><div class="stat-num">' + totalNew + '</div><div class="stat-label">Новых</div></div>';
-
-    // Sites for filter
-    
-
-    // Table
-    const tbody = document.getElementById('tbody');
-    if (!data.length) {
-      tbody.innerHTML = '';
-      document.getElementById('empty').style.display = 'block';
-      return;
-    }
-    document.getElementById('empty').style.display = 'none';
-
-    tbody.innerHTML = data.map(function(d) {
-      const created = d.created_at ? new Date(d.created_at + 'Z').toLocaleString('ru-RU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).replace(' г.','') : '';
-      return '<tr>' +
-        '<td>' + d.id + '</td>' +
-        
-        '<td><strong>' + (d.name || '') + '</strong></td>' +
-        '<td><a href="tel:' + (d.phone || '') + '" style="color:#6bcbb4;text-decoration:none">' + (d.phone || '') + '</a></td>' +
-        '<td>' + (d.doctor || '-') + '</td>' +
-        '<td>' + (d.date || '-') + '</td>' +
-        '<td>' + (d.time || '-') + '</td>' +
-        '<td>' + (d.service || '-') + '</td>' +
-        '<td>' + (d.preorder || '-') + '</td>' +
-        '<td>' + (d.comment || '-') + '</td>' +
-        '<td>' + created + '</td>' +
-        '<td><span class="badge badge-' + (d.status || 'new') + '">' + (d.status || 'new') + '</span></td>' +
-        '</tr>';
-    }).join('');
-  } catch (e) {
-    alert('Ошибка загрузки: ' + e.message);
-  }
+function switchTab(t,el){
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+  document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active')});
+  el.classList.add('active');
+  document.getElementById(t+'View').classList.add('active');
+  if(t==='schedule')renderSchedule();
+}
+async function loadData(){
+  var status=document.getElementById('statusFilter').value;
+  var url=BASE+'/api/list?token='+encodeURIComponent(token)+'&limit=200';
+  if(status)url+='&status='+encodeURIComponent(status);
+  try{
+    var res=await fetch(url);
+    var json=await res.json();
+    if(!json.ok){alert('Ошибка: '+(json.error||'Неверный токен'));return}
+    allData=json.data||[];
+    renderList();
+    renderSchedule();
+  }catch(e){alert('Ошибка: '+e.message)}
+}
+function renderList(){
+  var data=allData;
+  var totalNew=data.filter(function(d){return d.status==='new'}).length;
+  document.getElementById('stats').innerHTML=
+    '<div class="stat"><div class="stat-num">'+data.length+'</div><div class="stat-label">Всего</div></div>'+
+    '<div class="stat"><div class="stat-num">'+totalNew+'</div><div class="stat-label">Новых</div></div>';
+  var tbody=document.getElementById('tbody');
+  if(!data.length){tbody.innerHTML='';document.getElementById('empty').style.display='block';return}
+  document.getElementById('empty').style.display='none';
+  tbody.innerHTML=data.map(function(d){
+    var cr=d.created_at?new Date(d.created_at+'Z').toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).replace(' г.',''):'';
+    return '<tr><td>'+d.id+'</td><td><strong>'+(d.name||'')+'</strong></td><td><a href="tel:'+(d.phone||'')+'" style="color:#6bcbb4;text-decoration:none">'+(d.phone||'')+'</a></td><td>'+(d.doctor||'-')+'</td><td>'+(d.date||'-')+'</td><td>'+(d.time||'-')+'</td><td>'+(d.service||'-')+'</td><td>'+(d.preorder||'-')+'</td><td>'+(d.comment||'-')+'</td><td>'+cr+'</td><td><span class="badge badge-'+(d.status||'new')+'">'+(d.status||'new')+'</span></td></tr>';
+  }).join('');
+}
+function getWeekDays(off){
+  var today=new Date();
+  var mon=new Date(today);
+  mon.setDate(today.getDate()-today.getDay()+1+off*7);
+  var days=[];
+  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d)}
+  return days;
+}
+function renderSchedule(){
+  var days=getWeekDays(weekOffset);
+  var bk={};
+  allData.forEach(function(b){
+    if(!b.date||!b.doctor)return;
+    var docName=b.doctor.replace(/ --.*/,'').trim();
+    var key=b.date.trim()+'|'+docName;
+    if(!bk[key])bk[key]=[];
+    bk[key].push(b);
+  });
+  var h='<div class="sched-grid"><div class="sched-cell sched-header">Врач</div>';
+  var todayStr=new Date().toDateString();
+  days.forEach(function(d){
+    var isT=d.toDateString()===todayStr;
+    h+='<div class="sched-cell sched-header'+(isT?' sched-today':'')+'">'+DA[d.getDay()]+', '+d.getDate()+' '+MO[d.getMonth()]+'</div>';
+  });
+  DOCTORS.forEach(function(doc){
+    var short=doc.split(' ')[0]+' '+doc.split(' ')[1][0]+'.';
+    h+='<div class="sched-cell sched-doctor">'+short+'</div>';
+    days.forEach(function(d){
+      var dk=d.getDate()+' '+MO[d.getMonth()];
+      var matches=[];
+      Object.keys(bk).forEach(function(k){
+        var parts=k.split('|');
+        if(parts[0]===dk&&parts[1].indexOf(doc.split(' ')[0])>=0)matches=matches.concat(bk[k]);
+      });
+      if(matches.length){
+        h+='<div class="sched-cell sched-booked">';
+        matches.forEach(function(m){
+          h+='<div class="sched-booking"><div class="bk-name">'+(m.name||'')+'</div><div class="bk-svc">'+(m.service||'')+'</div><div class="bk-time">'+(m.time||'')+'</div></div>';
+        });
+        h+='</div>';
+      }else{
+        h+='<div class="sched-cell"><span class="sched-free">—</span></div>';
+      }
+    });
+  });
+  h+='</div>';
+  document.getElementById('schedGrid').innerHTML=h;
+}
+function shiftWeek(dir){
+  if(dir===0)weekOffset=0;else weekOffset+=dir;
+  renderSchedule();
+  document.querySelectorAll('.schedule-nav button').forEach(function(b){b.classList.remove('act')});
+  if(dir===0)document.querySelectorAll('.schedule-nav button')[1].classList.add('act');
 }
 </script>
 </body>
