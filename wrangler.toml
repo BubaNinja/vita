@@ -6,4 +6,4 @@ pages_build_output_dir = "public"
 [[d1_databases]]
 binding = "DB"
 database_name = "submissions"
-database_id = "" # <- сюда вставить ID после создания базы
+database_id = "5b0e34dc-f177-4d4d-8a12-43a9f9d6852e" # <- сюда вставить ID после создания базы
