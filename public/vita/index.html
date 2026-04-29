@@ -322,7 +322,7 @@ body {
 }
 
 /* ═══════ SECTION COMMON ═══════ */
-section { padding: 100px 3vw; }
+section { padding: 70px 3vw; }
 .section-header {
   text-align: center; max-width: 640px; margin: 0 auto 4rem;
 }
@@ -558,7 +558,7 @@ section { padding: 100px 3vw; }
 
 /* ═══════ CTA SECTION ═══════ */
 .cta-section {
-  padding: 100px 3vw;
+  padding: 70px 3vw;
 }
 .cta-box {
   max-width: 1000px; margin: 0 auto;
@@ -624,7 +624,7 @@ section { padding: 100px 3vw; }
 
 /* ═══════ CART ═══════ */
 .cart-fab {
-  position: fixed; bottom: 30px; right: 30px; z-index: 99;
+  position: fixed; bottom: 5rem; right: 1.5rem; z-index: 99;
   width: 60px; height: 60px; border-radius: 50%;
   background: linear-gradient(135deg, var(--navy), var(--sky-deep));
   border: none; cursor: pointer;
@@ -765,7 +765,7 @@ section { padding: 100px 3vw; }
 @media (max-width: 768px) {
   .nav-links { display: none; }
   .burger { display: block; }
-  section { padding: 70px 5vw; }
+  section { padding: 50px 5vw; }
   .services-grid { grid-template-columns: 1fr; }
   .doctors-grid { grid-template-columns: 1fr; }
   .adv-grid { grid-template-columns: 1fr; }
@@ -803,7 +803,7 @@ section { padding: 100px 3vw; }
 .booking-form{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:2.5rem;max-width:600px;margin:0 auto}
 .booking-form .fg{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
 .booking-form label{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--navy-light)}
-.booking-form input,.booking-form select,.booking-form textarea{background:var(--white);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:14px 16px;font-family:'Manrope',sans-serif;font-size:14px;color:var(--charcoal);outline:none;transition:border-color 0.3s}
+.booking-form input,.booking-form select,.booking-form textarea{background:var(--white);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:14px 16px;font-family:'Manrope',sans-serif;font-size:15px;color:#1a1f2e;font-weight:500;outline:none;transition:border-color 0.3s}
 .booking-form input:focus,.booking-form select:focus,.booking-form textarea:focus{border-color:var(--sky-deep)}
 .booking-form select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%234BA3C7' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 .booking-form textarea{resize:vertical;min-height:70px}
@@ -995,7 +995,7 @@ section { padding: 100px 3vw; }
     <p class="section-subtitle">Первичный осмотр и план лечения -- бесплатно. Мы подберём оптимальное решение для вашей улыбки.</p>
   </div>
   <div class="booking-form reveal">
-    <div class="form-row"><div class="fg"><label>Имя</label><input type="text" name="name" placeholder="Ваше имя" required></div><div class="fg"><label>Телефон</label><input type="tel" name="phone" placeholder="Номер телефона" required></div></div>
+    <div class="form-row"><div class="fg"><label>Имя</label><input type="text" name="name" placeholder="Ваше имя" required></div><div class="fg"><label>Телефон</label><input type="tel" name="phone" id="phoneInput" placeholder="+7 (___) ___-__-__" value="+7 " oninput="maskPhone(this)" onclick="if(this.value.length<4)this.value='+7 '" required></div></div>
     <div class="fg">
       <label>Врач</label>
       <select name="doctor" id="doctorSelect" onchange="renderAvailability()">
@@ -1083,7 +1083,7 @@ section { padding: 100px 3vw; }
     <button class="cart-checkout" id="cartCheckoutBtn" onclick="showCartForm()">Записаться на приём</button>
     <div class="cart-form" id="cartForm">
       <input type="text" id="cfName" placeholder="Ваше имя" required>
-      <input type="tel" id="cfPhone" placeholder="Номер телефона" required>
+      <input type="tel" id="cfPhone" placeholder="+7 (___) ___-__-__" value="+7 " oninput="maskPhone(this)" onclick="if(this.value.length<4)this.value='+7 '" required>
       <div class="cart-form-row"><select id="cfDoctor"><option value="">Любой врач</option><option>Алексей Морозов</option><option>Елена Светлова</option><option>Дмитрий Ковалёв</option></select><input type="number" id="cfDay" placeholder="День" min="1" max="31" style="flex:1"><select id="cfMonth" style="flex:2"><option value="">Месяц</option><option value="01">Янв</option><option value="02">Фев</option><option value="03">Мар</option><option value="04">Апр</option><option value="05">Май</option><option value="06">Июн</option><option value="07">Июл</option><option value="08">Авг</option><option value="09">Сен</option><option value="10">Окт</option><option value="11">Ноя</option><option value="12">Дек</option></select></div>
       <button class="cart-checkout" onclick="submitCartOrder()">Подтвердить запись</button>
       <button class="cart-back" onclick="hideCartForm()">Назад</button>
@@ -1346,13 +1346,13 @@ document.getElementById("maxIcon").src="data:image/jpeg;base64,/9j/4AAQSkZJRgABA
 window.addEventListener("scroll",function(){document.getElementById("scrollTop").classList.toggle("visible",window.scrollY>500)});
 document.querySelectorAll(".doctor-card").forEach(function(card,i){card.style.cursor="pointer";card.addEventListener("click",function(){var sel=document.getElementById("doctorSelect");if(sel&&i<sel.options.length-1)sel.selectedIndex=i+1;document.getElementById("contact").scrollIntoView({behavior:"smooth"})})});
 function handleBooking(){var name=document.querySelector('[name="name"]').value;var phone=document.querySelector('[name="phone"]').value;if(!name||!phone)return;var btn=document.getElementById("bookBtn");btn.classList.add("loading");
-fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.querySelector('[name="doctor"]').value||"",date:(document.getElementById('hiddenDay').value||'')+' '+(document.getElementById('hiddenMonth').value||''),time:document.getElementById("timeHidden").value||"",service:document.querySelector('[name="service"]').value||"консультация",preorder:document.getElementById("preorderHidden").value||"",comment:document.querySelector('[name="comment"]').value||""})}).then(function(r){return r.json()}).then(function(d){btn.classList.remove("loading");if(d.error==="slot_taken"){alert(d.message||"Слот занят");fetch("/api/slots").then(function(r){return r.json()}).then(function(j){if(j.ok){bookedSlots=j.booked||[];doctorSchedule=j.schedule||[]}updateSlots()});return}document.getElementById("successModal").classList.add("active");document.querySelector('[name="name"]').value="";document.querySelector('[name="phone"]').value="";document.querySelector('[name="comment"]').value=""}).catch(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active")})}
+fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.querySelector('[name="doctor"]').value||"",date:(document.getElementById('hiddenDay').value||'')+' '+(document.getElementById('hiddenMonth').value||''),time:document.getElementById("timeHidden").value||"",service:document.querySelector('[name="service"]').value||"консультация",preorder:document.getElementById("preorderHidden").value||"",comment:document.querySelector('[name="comment"]').value||""})}).then(function(r){return r.json()}).then(function(d){btn.classList.remove("loading");if(d.error==="slot_taken"){alert(d.message||"Слот занят");fetch("/api/slots").then(function(r){return r.json()}).then(function(j){if(j.ok){bookedSlots=j.booked||[];doctorSchedule=j.schedule||[]}updateSlots()});return}document.getElementById("successModal").classList.add("active");document.querySelector('[name="name"]').value="";document.querySelector('[name="phone"]').value="+7 ";document.querySelector('[name="comment"]').value=""}).catch(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active")})}
 function showCartForm(){document.getElementById("cartCheckoutBtn").style.display="none";document.getElementById("cartForm").classList.add("show")}
 function hideCartForm(){document.getElementById("cartCheckoutBtn").style.display="";document.getElementById("cartForm").classList.remove("show")}
 function submitCartOrder(){var name=document.getElementById("cfName").value;var phone=document.getElementById("cfPhone").value;if(!name||!phone)return;
 var items=cart.map(function(c){return c.name}).join(", ");
 fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.getElementById("cfDoctor").value||"",date:(document.getElementById("cfDay").value||"")+" "+(document.getElementById("cfMonth").options[document.getElementById("cfMonth").selectedIndex].text||""),preorder:items})}).catch(function(){});
-toggleCart();hideCartForm();document.getElementById("successModal").classList.add("active");cart=[];document.querySelectorAll(".add-to-cart-btn.added").forEach(function(b){b.classList.remove("added");b.innerHTML="+"});updateCart();document.getElementById("cfName").value="";document.getElementById("cfPhone").value=""}
+toggleCart();hideCartForm();document.getElementById("successModal").classList.add("active");cart=[];document.querySelectorAll(".add-to-cart-btn.added").forEach(function(b){b.classList.remove("added");b.innerHTML="+"});updateCart();document.getElementById("cfName").value="";document.getElementById("cfPhone").value="+7 "}
 
 // Availability picker
 var bookedSlots = [];
@@ -1511,6 +1511,25 @@ function pickTime(btn,time,isConsult){
   }
 }
 
+
+// Phone mask +7 (___) ___-__-__
+
+// Init phone fields with +7
+document.addEventListener('DOMContentLoaded',function(){
+  var phones=document.querySelectorAll('[type="tel"]');
+  phones.forEach(function(p){if(!p.value||p.value.length<3)p.value='+7 '});
+});
+function maskPhone(inp){
+  var v=inp.value.replace(/\D/g,'');
+  if(v.length<1)v='7';
+  if(v[0]!=='7')v='7'+v;
+  var f='+7';
+  if(v.length>1)f+=' ('+v.substring(1,4);
+  if(v.length>=4)f+=') '+v.substring(4,7);
+  if(v.length>=7)f+='-'+v.substring(7,9);
+  if(v.length>=9)f+='-'+v.substring(9,11);
+  inp.value=f;
+}
 function closeModal(e){if(e.target===e.currentTarget)e.currentTarget.classList.remove("active")}
 
 </script>
