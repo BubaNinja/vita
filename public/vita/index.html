@@ -829,6 +829,10 @@ section { padding: 100px 3vw; }
 .time-btn:hover{border-color:var(--sky-deep);background:var(--frost)}
 .time-btn.selected{background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;border-color:transparent}
 .time-btn.busy{background:var(--frost);color:var(--navy-light);opacity:0.35;cursor:not-allowed;text-decoration:line-through;pointer-events:none}
+.cons-btn{font-size:11px!important;padding:6px 12px!important;background:var(--frost)!important;color:var(--mint-deep)!important;border-color:var(--mint)!important;min-width:auto!important}
+.cons-btn:hover{background:var(--mint)!important;color:var(--navy)!important}
+.cons-btn.selected{background:var(--mint-deep)!important;color:white!important;border-color:var(--mint-deep)!important}
+.cons-btn.busy{background:var(--frost)!important;opacity:0.25!important}
 .btn-book{width:100%;padding:16px;border-radius:60px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--navy),var(--navy-light));color:white;font-size:0.85rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;transition:all 0.3s;box-shadow:0 4px 20px rgba(27,58,75,0.2);margin-top:0.5rem;display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-book:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(27,58,75,0.3)}
 .btn-book .spinner{display:none;width:18px;height:18px;border:2px solid transparent;border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite}
@@ -1013,16 +1017,7 @@ section { padding: 100px 3vw; }
     <div class="fg">
       <label>Услуга</label>
       <select name="service" id="serviceSelect">
-        <option value="">Консультация (бесплатно)</option>
-        <option>Профессиональная чистка</option>
-        <option>Лечение кариеса</option>
-        <option>Виниры E-max</option>
-        <option>Отбеливание ZOOM 4</option>
-        <option>Имплантация Straumann</option>
-        <option>Элайнеры 3D Smile</option>
-        <option>Удаление зуба мудрости</option>
-        <option>Коронки из диоксида</option>
-        <option>Детская стоматология</option>
+        <option value="">Выберите врача</option>
       </select>
     </div>
     <div class="fg"><label>Комментарий</label><textarea name="comment" placeholder="Опишите проблему или пожелания..."></textarea></div>
@@ -1366,6 +1361,33 @@ var MOS = ['','янв','фев','мар','апр','май','июн','июл','а
 var WDS = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 var selectedDay = null;
 
+// Per-doctor services
+var DOC_SERVICES = {
+  'Алексей Морозов':[
+    'Консультация (бесплатно)',
+    'Профессиональная чистка -- 4 500 руб',
+    'Имплантация Straumann -- от 65 000 руб',
+    'Удаление зуба мудрости -- от 8 500 руб',
+    'Коронки из диоксида -- 28 000 руб/шт',
+    'Детская стоматология -- от 3 500 руб'
+  ],
+  'Елена Светлова':[
+    'Консультация (бесплатно)',
+    'Профессиональная чистка -- 4 500 руб',
+    'Виниры E-max -- 32 000 руб/шт',
+    'Отбеливание ZOOM 4 -- 18 000 руб',
+    'Элайнеры 3D Smile -- от 180 000 руб',
+    'Детская стоматология -- от 3 500 руб'
+  ],
+  'Дмитрий Ковалёв':[
+    'Консультация (бесплатно)',
+    'Лечение кариеса -- от 5 800 руб',
+    'Имплантация Straumann -- от 65 000 руб',
+    'Удаление зуба мудрости -- от 8 500 руб',
+    'Коронки из диоксида -- 28 000 руб/шт'
+  ]
+};
+
 fetch('/api/slots').then(function(r){return r.json()}).then(function(j){
   if(j.ok){bookedSlots=j.booked||[];doctorSchedule=j.schedule||[]}
 }).catch(function(){});
@@ -1374,6 +1396,7 @@ function renderAvailability(){
   var picker=document.getElementById('availPicker');
   var docSel=document.getElementById('doctorSelect');
   var doctor=docSel?docSel.options[docSel.selectedIndex].text:'';
+  var svcSel=document.getElementById('serviceSelect');
   selectedDay=null;
   document.getElementById('timeHidden').value='';
   document.getElementById('hiddenDay').value='';
@@ -1381,14 +1404,19 @@ function renderAvailability(){
 
   if(!doctor||doctor==='Любой специалист'){
     picker.innerHTML='<div class="slot-hint">Выберите врача</div>';
+    svcSel.innerHTML='<option value="">Выберите врача</option>';
     return;
   }
 
-  var docFirst=doctor.split(' --')[0].trim().split(' ')[0];
+  // Update services for this doctor
+  var docFullName=doctor.split(' --')[0].trim();
+  var svcs=DOC_SERVICES[docFullName]||['Консультация (бесплатно)'];
+  svcSel.innerHTML=svcs.map(function(s){return '<option value="'+s+'">'+s+'</option>'}).join('');
+
+  var docFirst=docFullName.split(' ')[0];
   var today=new Date();
   var days=[];
 
-  // Next 14 days
   for(var i=0;i<14;i++){
     var d=new Date(today);d.setDate(today.getDate()+i);
     var jsWd=d.getDay();
@@ -1396,25 +1424,21 @@ function renderAvailability(){
 
     var workSlots=doctorSchedule.filter(function(s){
       return s.doctor.indexOf(docFirst)>=0&&s.weekday===dbWd;
-    }).map(function(s){return s.slot});
+    }).map(function(s){return s.slot}).sort();
 
     var dateStr=d.getDate()+' '+MOS[d.getMonth()+1];
-    var busyCount=bookedSlots.filter(function(s){
-      return s.date===dateStr&&s.doctor.indexOf(docFirst)>=0;
+
+    // Count busy: main slots + consultation slots
+    var busyMain=bookedSlots.filter(function(s){
+      return s.date===dateStr&&s.doctor.indexOf(docFirst)>=0&&s.time.indexOf('конс')<0;
     }).length;
 
-    var freeCount=workSlots.length-busyCount;
+    var freeMain=workSlots.length-busyMain;
 
     days.push({
-      date:d,
-      dateStr:dateStr,
-      wd:WDS[jsWd],
-      day:d.getDate(),
-      month:MOS[d.getMonth()+1],
-      monthIdx:d.getMonth()+1,
-      workSlots:workSlots,
-      freeCount:freeCount>0?freeCount:0,
-      works:workSlots.length>0
+      date:d,dateStr:dateStr,wd:WDS[jsWd],day:d.getDate(),
+      month:MOS[d.getMonth()+1],monthIdx:d.getMonth()+1,
+      workSlots:workSlots,freeCount:freeMain>0?freeMain:0,works:workSlots.length>0
     });
   }
 
@@ -1430,8 +1454,6 @@ function renderAvailability(){
   });
   h+='</div><div id="timeSlots"></div>';
   picker.innerHTML=h;
-
-  // Store days data globally
   window._availDays=days;
 }
 
@@ -1453,22 +1475,40 @@ function pickDay(idx,el){
   }).map(function(s){return s.time});
 
   var h='<div class="time-slots">';
-  dd.workSlots.forEach(function(t){
+  var slots=dd.workSlots.sort();
+  slots.forEach(function(t,i){
+    var nextHour=parseInt(t)+1;
+    var label=t+' -- '+nextHour+':00';
     var isBusy=busy.indexOf(t)>=0;
+
+    // Main 1-hour slot
     if(isBusy){
-      h+='<button type="button" class="time-btn busy">'+t+' (занято)</button>';
+      h+='<button type="button" class="time-btn busy">'+label+'</button>';
     }else{
-      h+='<button type="button" class="time-btn" onclick="pickTime(this,\''+t+'\')">'+t+'</button>';
+      h+='<button type="button" class="time-btn" onclick="pickTime(this,\''+t+'\',false)">'+label+'</button>';
+    }
+
+    // Consultation mini-slot after this hour
+    var consTime=t.replace(':00',':50');
+    var consBusy=busy.indexOf(consTime+' конс.')>=0;
+    if(!consBusy){
+      h+='<button type="button" class="time-btn cons-btn" onclick="pickTime(this,\''+consTime+' конс.\',true)">'+consTime+' конс.</button>';
+    }else{
+      h+='<button type="button" class="time-btn cons-btn busy">'+consTime+' конс.</button>';
     }
   });
   h+='</div>';
   document.getElementById('timeSlots').innerHTML=h;
 }
 
-function pickTime(btn,time){
+function pickTime(btn,time,isConsult){
   document.querySelectorAll('.time-btn').forEach(function(b){b.classList.remove('selected')});
   btn.classList.add('selected');
   document.getElementById('timeHidden').value=time;
+  if(isConsult){
+    var svcSel=document.getElementById('serviceSelect');
+    svcSel.value=svcSel.options[0].value;
+  }
 }
 
 function closeModal(e){if(e.target===e.currentTarget)e.currentTarget.classList.remove("active")}
