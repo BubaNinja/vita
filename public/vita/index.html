@@ -1307,12 +1307,12 @@ document.getElementById("maxIcon").src="data:image/jpeg;base64,/9j/4AAQSkZJRgABA
 window.addEventListener("scroll",function(){document.getElementById("scrollTop").classList.toggle("visible",window.scrollY>500)});
 document.querySelectorAll(".doctor-card").forEach(function(card,i){card.style.cursor="pointer";card.addEventListener("click",function(){var sel=document.getElementById("doctorSelect");if(sel&&i<sel.options.length-1)sel.selectedIndex=i+1;document.getElementById("contact").scrollIntoView({behavior:"smooth"})})});
 function handleBooking(){var name=document.querySelector('[name="name"]').value;var phone=document.querySelector('[name="phone"]').value;if(!name||!phone)return;var btn=document.getElementById("bookBtn");btn.classList.add("loading");
-fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.querySelector('[name="doctor"]').value||"",date:document.querySelector('[name="date"]').value||"",time:document.querySelector('[name="time"]').value||"",service:document.querySelector('[name="service"]').value||"консультация",preorder:document.getElementById("preorderHidden").value||"",comment:document.querySelector('[name="comment"]').value||""})}).then(function(r){return r.json()}).then(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active");document.querySelector('[name="name"]').value="";document.querySelector('[name="phone"]').value="";document.querySelector('[name="comment"]').value=""}).catch(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active")})}
+fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.querySelector('[name="doctor"]').value||"",date:((document.querySelector('[name="day"]')||{}).value||'')+' '+((document.querySelector('[name="month"]')||{}).options?document.querySelector('[name="month"]').options[document.querySelector('[name="month"]').selectedIndex].text:''),time:document.getElementById("timeHidden").value||"",service:document.querySelector('[name="service"]').value||"консультация",preorder:document.getElementById("preorderHidden").value||"",comment:document.querySelector('[name="comment"]').value||""})}).then(function(r){return r.json()}).then(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active");document.querySelector('[name="name"]').value="";document.querySelector('[name="phone"]').value="";document.querySelector('[name="comment"]').value=""}).catch(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active")})}
 function showCartForm(){document.getElementById("cartCheckoutBtn").style.display="none";document.getElementById("cartForm").classList.add("show")}
 function hideCartForm(){document.getElementById("cartCheckoutBtn").style.display="";document.getElementById("cartForm").classList.remove("show")}
 function submitCartOrder(){var name=document.getElementById("cfName").value;var phone=document.getElementById("cfPhone").value;if(!name||!phone)return;
 var items=cart.map(function(c){return c.name}).join(", ");
-fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.getElementById("cfDoctor").value||"",date:document.getElementById("cfDate").value||"",preorder:items})}).catch(function(){});
+fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.getElementById("cfDoctor").value||"",date:(document.getElementById("cfDay").value||"")+" "+(document.getElementById("cfMonth").options[document.getElementById("cfMonth").selectedIndex].text||""),preorder:items})}).catch(function(){});
 toggleCart();hideCartForm();document.getElementById("successModal").classList.add("active");cart=[];document.querySelectorAll(".add-to-cart-btn.added").forEach(function(b){b.classList.remove("added");b.innerHTML="+"});updateCart();document.getElementById("cfName").value="";document.getElementById("cfPhone").value=""}
 
 // Slot picker
@@ -1344,8 +1344,13 @@ function updateSlots(){
   var day = dayInput ? dayInput.value : '';
   var monthIdx = monthSel ? monthSel.selectedIndex : 0;
 
-  if(!doctor || doctor === 'Любой специалист' || !day || !monthIdx){
-    picker.innerHTML = '<div class="slot-hint">Выберите врача и дату</div>';
+  if(!doctor || doctor === 'Любой специалист'){
+    picker.innerHTML = '<div class="slot-hint">Сначала выберите врача</div>';
+    document.getElementById('timeHidden').value = '';
+    return;
+  }
+  if(!day || !monthIdx){
+    picker.innerHTML = '<div class="slot-hint">Укажите день и месяц</div>';
     document.getElementById('timeHidden').value = '';
     return;
   }
