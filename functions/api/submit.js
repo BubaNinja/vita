@@ -1,33 +1,37 @@
-// functions/api/slots.js
-// Публичный эндпоинт — возвращает занятые слоты (без персональных данных)
-
 export async function onRequest(context) {
   const { request, env } = context;
+  const url = new URL(request.url);
 
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
   };
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { headers });
+  const token = url.searchParams.get('token');
+  if (token !== (env.ADMIN_TOKEN || 'changeme')) {
+    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), { status: 401, headers });
   }
 
+  const site = url.searchParams.get('site') || '';
+  const limit = parseInt(url.searchParams.get('limit') || '50');
+  const status = url.searchParams.get('status') || '';
+
   try {
-    const result = await env.DB.prepare(
-      `SELECT doctor, date, time FROM submissions WHERE status != 'cancelled' ORDER BY created_at DESC LIMIT 500`
-    ).all();
+    let query = 'SELECT * FROM submissions';
+    const conditions = [];
+    const params = [];
 
-    const slots = (result.results || []).map(r => ({
-      doctor: r.doctor || '',
-      date: r.date || '',
-      time: r.time || ''
-    })).filter(s => s.doctor && s.date && s.time);
+    if (site) { conditions.push('site = ?'); params.push(site); }
+    if (status) { conditions.push('status = ?'); params.push(status); }
 
-    return new Response(JSON.stringify({ ok: true, slots }), { status: 200, headers });
+    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
+    query += ' ORDER BY created_at DESC LIMIT ?';
+    params.push(limit);
+
+    const result = await env.DB.prepare(query).bind(...params).all();
+
+    return new Response(JSON.stringify({ ok: true, data: result.results, count: result.results.length }), { status: 200, headers });
   } catch (err) {
-    return new Response(JSON.stringify({ ok: true, slots: [] }), { status: 200, headers });
+    return new Response(JSON.stringify({ ok: false, error: err.message }), { status: 500, headers });
   }
 }
