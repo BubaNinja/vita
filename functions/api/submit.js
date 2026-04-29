@@ -22,8 +22,19 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ ok: false, error: 'name and phone required' }), { status: 400, headers });
     }
 
+    // Check for double-booking (same doctor + date + time)
+    if (data.doctor && data.date && data.time) {
+      const existing = await env.DB.prepare(
+        "SELECT id FROM submissions WHERE doctor = ? AND date = ? AND time = ? AND status != 'cancelled' LIMIT 1"
+      ).bind(data.doctor, data.date, data.time).first();
+
+      if (existing) {
+        return new Response(JSON.stringify({ ok: false, error: 'slot_taken', message: 'Этот слот уже занят. Выберите другое время.' }), { status: 409, headers });
+      }
+    }
+
     await env.DB.prepare(
-      'INSERT INTO submissions (site, name, phone, doctor, date, time, service, preorder, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime(\'now\'))'
+      "INSERT INTO submissions (site, name, phone, doctor, date, time, service, preorder, comment, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))"
     ).bind(
       data.site || 'unknown',
       data.name,
