@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Заявки — Админка</title>
+<title>Админка</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,system-ui,sans-serif;background:#0f1117;color:#e0e0e0;min-height:100vh}
@@ -12,9 +12,8 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f1117;color:#e0
 .header h1 span{color:#6bcbb4}
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .controls select{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:8px 14px;border-radius:8px;font-size:13px;outline:none}
-.controls select:focus{border-color:#6bcbb4}
-.controls button{background:#6bcbb4;color:#0f1117;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
-.controls button:hover{background:#8dd8c8}
+.btn{background:#6bcbb4;color:#0f1117;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn:hover{background:#8dd8c8}
 .tabs{display:flex;gap:0;padding:0 32px;border-bottom:1px solid #222}
 .tab{padding:14px 24px;font-size:13px;font-weight:600;color:#666;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
 .tab:hover{color:#e0e0e0}
@@ -25,7 +24,7 @@ body{font-family:-apple-system,system-ui,sans-serif;background:#0f1117;color:#e0
 .stat-label{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.1em}
 .table-wrap{overflow-x:auto;padding:0 32px 32px}
 table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px}
-th{text-align:left;padding:12px 14px;color:#888;font-weight:500;text-transform:uppercase;font-size:11px;letter-spacing:0.08em;border-bottom:1px solid #222;position:sticky;top:0;background:#0f1117}
+th{text-align:left;padding:12px 14px;color:#888;font-weight:500;text-transform:uppercase;font-size:11px;letter-spacing:0.08em;border-bottom:1px solid #222;background:#0f1117}
 td{padding:12px 14px;border-bottom:1px solid #1a1d27;vertical-align:top;max-width:200px;word-wrap:break-word}
 tr:hover td{background:#141620}
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
@@ -38,24 +37,44 @@ tr:hover td{background:#141620}
 .login h2{font-size:1.1rem;color:#666;font-weight:400}
 .view{display:none}
 .view.active{display:block}
+
+/* Schedule management */
+.sched-mgmt{padding:24px 32px}
+.sched-mgmt h3{font-size:1rem;font-weight:600;margin-bottom:20px}
+.doc-sched{margin-bottom:32px}
+.doc-sched-name{font-size:14px;font-weight:700;color:#e0e0e0;margin-bottom:12px;padding:8px 0;border-bottom:1px solid #222}
+.sched-table{display:grid;grid-template-columns:100px repeat(6,1fr);gap:1px;background:#222;border-radius:8px;overflow:hidden;margin-bottom:8px}
+.sc{background:#0f1117;padding:8px 4px;text-align:center;font-size:11px;min-height:36px;display:flex;align-items:center;justify-content:center}
+.sc-head{background:#141620;color:#888;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:0.05em}
+.sc-slot{background:#141620;color:#e0e0e0;font-weight:500;font-size:10px;justify-content:flex-start;padding-left:8px}
+.sc-on{background:rgba(107,203,180,0.15);cursor:pointer;color:#6bcbb4;font-weight:600;transition:all 0.15s}
+.sc-on:hover{background:rgba(107,203,180,0.25)}
+.sc-off{background:#0f1117;cursor:pointer;color:#333;transition:all 0.15s}
+.sc-off:hover{background:#141620;color:#666}
+.sc-on::after{content:'\\2713'}
+.sc-off::after{content:'—'}
+.sched-hint{font-size:12px;color:#666;margin-top:12px}
+
+/* Calendar */
 .schedule{padding:20px 32px}
 .schedule-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
 .schedule-header h3{font-size:1rem;font-weight:600}
 .schedule-nav{display:flex;gap:6px}
 .schedule-nav button{background:#1a1d27;border:1px solid #333;color:#e0e0e0;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s}
 .schedule-nav button:hover,.schedule-nav button.act{background:#6bcbb4;color:#0f1117;border-color:#6bcbb4}
-.sched-grid{display:grid;grid-template-columns:120px repeat(7,1fr);gap:1px;background:#222;border-radius:8px;overflow:hidden}
-.sched-cell{background:#0f1117;padding:10px 6px;font-size:12px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px}
-.sched-header{background:#141620;font-weight:600;color:#888;font-size:11px;text-transform:uppercase}
-.sched-today{color:#6bcbb4}
-.sched-doctor{background:#141620;font-weight:600;color:#e0e0e0;align-items:flex-start;justify-content:center;padding-left:12px;font-size:12px}
-.sched-booked{background:rgba(107,203,180,0.06)}
-.sched-booking{background:rgba(107,203,180,0.15);border:1px solid rgba(107,203,180,0.2);border-radius:6px;padding:4px 8px;font-size:11px;width:100%;text-align:left}
-.sched-booking .bk-name{font-weight:600;color:#e0e0e0}
-.sched-booking .bk-svc{color:#6bcbb4;font-size:10px}
-.sched-booking .bk-time{color:#888;font-size:10px}
-.sched-free{color:#333;font-size:16px}
-@media(max-width:768px){.header,.stats,.table-wrap,.schedule,.tabs{padding-left:16px;padding-right:16px}.sched-grid{grid-template-columns:80px repeat(7,1fr)}}
+.cal-grid{display:grid;grid-template-columns:120px repeat(7,1fr);gap:1px;background:#222;border-radius:8px;overflow:hidden}
+.cal-cell{background:#0f1117;padding:10px 6px;font-size:12px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px}
+.cal-head{background:#141620;font-weight:600;color:#888;font-size:11px;text-transform:uppercase}
+.cal-today{color:#6bcbb4}
+.cal-doc{background:#141620;font-weight:600;color:#e0e0e0;align-items:flex-start;justify-content:center;padding-left:12px;font-size:12px}
+.cal-booked{background:rgba(107,203,180,0.06)}
+.cal-bk{background:rgba(107,203,180,0.15);border:1px solid rgba(107,203,180,0.2);border-radius:6px;padding:4px 8px;font-size:11px;width:100%;text-align:left}
+.cal-bk .bk-name{font-weight:600;color:#e0e0e0}
+.cal-bk .bk-svc{color:#6bcbb4;font-size:10px}
+.cal-bk .bk-time{color:#888;font-size:10px}
+.cal-free{color:#333;font-size:16px}
+
+@media(max-width:768px){.header,.stats,.table-wrap,.schedule,.tabs,.sched-mgmt{padding-left:16px;padding-right:16px}.cal-grid{grid-template-columns:80px repeat(7,1fr)}.sched-table{grid-template-columns:80px repeat(6,1fr)}}
 </style>
 </head>
 <body>
@@ -63,7 +82,7 @@ tr:hover td{background:#141620}
 <div class="login" id="loginScreen">
   <h2>Введите пароль</h2>
   <input type="password" id="tokenInput" placeholder="Токен" onkeydown="if(event.key==='Enter')doLogin()">
-  <button onclick="doLogin()">Войти</button>
+  <button onclick="doLogin()" class="btn" style="width:280px;padding:14px 40px;font-size:15px;border-radius:10px">Войти</button>
 </div>
 
 <div id="app" style="display:none">
@@ -75,49 +94,55 @@ tr:hover td{background:#141620}
         <option value="new">Новые</option>
         <option value="done">Обработанные</option>
       </select>
-      <button onclick="loadData()">Обновить</button>
+      <button class="btn" onclick="loadData()">Обновить</button>
     </div>
   </div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('list',this)">Заявки</div>
-    <div class="tab" onclick="switchTab('schedule',this)">График</div>
+    <div class="tab" onclick="switchTab('calendar',this)">Календарь</div>
+    <div class="tab" onclick="switchTab('sched',this)">Расписание врачей</div>
   </div>
 
   <div class="view active" id="listView">
     <div class="stats" id="stats"></div>
     <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th>#</th><th>Имя</th><th>Телефон</th><th>Врач</th><th>Дата</th><th>Время</th><th>Услуга</th><th>Предзаказ</th><th>Комментарий</th><th>Создано</th><th>Статус</th>
-        </tr></thead>
-        <tbody id="tbody"></tbody>
-      </table>
+      <table><thead><tr><th>#</th><th>Имя</th><th>Телефон</th><th>Врач</th><th>Дата</th><th>Время</th><th>Услуга</th><th>Комментарий</th><th>Создано</th><th>Статус</th></tr></thead><tbody id="tbody"></tbody></table>
       <div class="empty" id="empty" style="display:none">Заявок пока нет</div>
     </div>
   </div>
 
-  <div class="view" id="scheduleView">
+  <div class="view" id="calendarView">
     <div class="schedule">
       <div class="schedule-header">
-        <h3>Расписание</h3>
+        <h3>Календарь записей</h3>
         <div class="schedule-nav">
           <button onclick="shiftWeek(-1)">&larr;</button>
           <button class="act" onclick="shiftWeek(0)">Сегодня</button>
           <button onclick="shiftWeek(1)">&rarr;</button>
         </div>
       </div>
-      <div id="schedGrid"></div>
+      <div id="calGrid"></div>
+    </div>
+  </div>
+
+  <div class="view" id="schedView">
+    <div class="sched-mgmt">
+      <h3>Расписание врачей</h3>
+      <p class="sched-hint">Нажимайте на ячейки чтобы включить/выключить слот. Изменения сохраняются мгновенно.</p>
+      <div id="schedMgmt" style="margin-top:20px"></div>
     </div>
   </div>
 </div>
 
 <script>
-var token='',allData=[],weekOffset=0;
+var token='',allData=[],scheduleData=[],weekOffset=0;
 var BASE=window.location.origin;
 var DOCTORS=['Алексей Морозов','Елена Светлова','Дмитрий Ковалёв'];
+var ALL_SLOTS=['8:00 -- 10:00','10:00 -- 12:00','12:00 -- 14:00','14:00 -- 16:00','16:00 -- 18:00','18:00 -- 21:00'];
 var MO=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 var DA=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+var WEEKDAYS=[{n:'Пн',v:1},{n:'Вт',v:2},{n:'Ср',v:3},{n:'Чт',v:4},{n:'Пт',v:5},{n:'Сб',v:6}];
 
 function doLogin(){
   token=document.getElementById('tokenInput').value;
@@ -125,26 +150,33 @@ function doLogin(){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
   loadData();
+  loadSchedule();
 }
 function switchTab(t,el){
   document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
   document.querySelectorAll('.view').forEach(function(x){x.classList.remove('active')});
   el.classList.add('active');
   document.getElementById(t+'View').classList.add('active');
-  if(t==='schedule')renderSchedule();
+  if(t==='calendar')renderCalendar();
+  if(t==='sched')renderSchedMgmt();
 }
 async function loadData(){
   var status=document.getElementById('statusFilter').value;
   var url=BASE+'/api/list?token='+encodeURIComponent(token)+'&limit=200';
   if(status)url+='&status='+encodeURIComponent(status);
   try{
-    var res=await fetch(url);
-    var json=await res.json();
-    if(!json.ok){alert('Ошибка: '+(json.error||'Неверный токен'));return}
+    var res=await fetch(url);var json=await res.json();
+    if(!json.ok){alert('Ошибка: '+(json.error||''));return}
     allData=json.data||[];
-    renderList();
-    renderSchedule();
+    renderList();renderCalendar();
   }catch(e){alert('Ошибка: '+e.message)}
+}
+async function loadSchedule(){
+  try{
+    var res=await fetch(BASE+'/api/schedule?token='+encodeURIComponent(token));
+    var json=await res.json();
+    if(json.ok)scheduleData=json.data||[];
+  }catch(e){}
 }
 function renderList(){
   var data=allData;
@@ -157,62 +189,87 @@ function renderList(){
   document.getElementById('empty').style.display='none';
   tbody.innerHTML=data.map(function(d){
     var cr=d.created_at?new Date(d.created_at+'Z').toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).replace(' г.',''):'';
-    return '<tr><td>'+d.id+'</td><td><strong>'+(d.name||'')+'</strong></td><td><a href="tel:'+(d.phone||'')+'" style="color:#6bcbb4;text-decoration:none">'+(d.phone||'')+'</a></td><td>'+(d.doctor||'-')+'</td><td>'+(d.date||'-')+'</td><td>'+(d.time||'-')+'</td><td>'+(d.service||'-')+'</td><td>'+(d.preorder||'-')+'</td><td>'+(d.comment||'-')+'</td><td>'+cr+'</td><td><span class="badge badge-'+(d.status||'new')+'">'+(d.status||'new')+'</span></td></tr>';
+    return '<tr><td>'+d.id+'</td><td><strong>'+(d.name||'')+'</strong></td><td><a href="tel:'+(d.phone||'')+'" style="color:#6bcbb4;text-decoration:none">'+(d.phone||'')+'</a></td><td>'+(d.doctor||'-')+'</td><td>'+(d.date||'-')+'</td><td>'+(d.time||'-')+'</td><td>'+(d.service||'-')+'</td><td>'+(d.comment||'-')+'</td><td>'+cr+'</td><td><span class="badge badge-'+(d.status||'new')+'">'+(d.status||'new')+'</span></td></tr>';
   }).join('');
 }
+
+// Calendar
 function getWeekDays(off){
-  var today=new Date();
-  var mon=new Date(today);
+  var today=new Date();var mon=new Date(today);
   mon.setDate(today.getDate()-today.getDay()+1+off*7);
-  var days=[];
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d)}
+  var days=[];for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d)}
   return days;
 }
-function renderSchedule(){
-  var days=getWeekDays(weekOffset);
-  var bk={};
+function renderCalendar(){
+  var days=getWeekDays(weekOffset);var bk={};
   allData.forEach(function(b){
     if(!b.date||!b.doctor)return;
-    var docName=b.doctor.replace(/ --.*/,'').trim();
-    var key=b.date.trim()+'|'+docName;
-    if(!bk[key])bk[key]=[];
-    bk[key].push(b);
+    var key=b.date.trim()+'|'+b.doctor.replace(/ --.*/,'').trim();
+    if(!bk[key])bk[key]=[];bk[key].push(b);
   });
-  var h='<div class="sched-grid"><div class="sched-cell sched-header">Врач</div>';
+  var h='<div class="cal-grid"><div class="cal-cell cal-head">Врач</div>';
   var todayStr=new Date().toDateString();
   days.forEach(function(d){
     var isT=d.toDateString()===todayStr;
-    h+='<div class="sched-cell sched-header'+(isT?' sched-today':'')+'">'+DA[d.getDay()]+', '+d.getDate()+' '+MO[d.getMonth()]+'</div>';
+    h+='<div class="cal-cell cal-head'+(isT?' cal-today':'')+'">'+DA[d.getDay()]+', '+d.getDate()+' '+MO[d.getMonth()]+'</div>';
   });
   DOCTORS.forEach(function(doc){
-    var short=doc.split(' ')[0]+' '+doc.split(' ')[1][0]+'.';
-    h+='<div class="sched-cell sched-doctor">'+short+'</div>';
+    h+='<div class="cal-cell cal-doc">'+doc.split(' ')[0]+' '+doc.split(' ')[1][0]+'.</div>';
     days.forEach(function(d){
-      var dk=d.getDate()+' '+MO[d.getMonth()];
-      var matches=[];
+      var dk=d.getDate()+' '+MO[d.getMonth()];var matches=[];
       Object.keys(bk).forEach(function(k){
         var parts=k.split('|');
         if(parts[0]===dk&&parts[1].indexOf(doc.split(' ')[0])>=0)matches=matches.concat(bk[k]);
       });
       if(matches.length){
-        h+='<div class="sched-cell sched-booked">';
-        matches.forEach(function(m){
-          h+='<div class="sched-booking"><div class="bk-name">'+(m.name||'')+'</div><div class="bk-svc">'+(m.service||'')+'</div><div class="bk-time">'+(m.time||'')+'</div></div>';
-        });
+        h+='<div class="cal-cell cal-booked">';
+        matches.forEach(function(m){h+='<div class="cal-bk"><div class="bk-name">'+(m.name||'')+'</div><div class="bk-svc">'+(m.service||'')+'</div><div class="bk-time">'+(m.time||'')+'</div></div>'});
         h+='</div>';
-      }else{
-        h+='<div class="sched-cell"><span class="sched-free">—</span></div>';
-      }
+      }else{h+='<div class="cal-cell"><span class="cal-free">—</span></div>'}
     });
   });
   h+='</div>';
-  document.getElementById('schedGrid').innerHTML=h;
+  document.getElementById('calGrid').innerHTML=h;
 }
 function shiftWeek(dir){
   if(dir===0)weekOffset=0;else weekOffset+=dir;
-  renderSchedule();
-  document.querySelectorAll('.schedule-nav button').forEach(function(b){b.classList.remove('act')});
-  if(dir===0)document.querySelectorAll('.schedule-nav button')[1].classList.add('act');
+  renderCalendar();
+}
+
+// Schedule management
+function renderSchedMgmt(){
+  var h='';
+  DOCTORS.forEach(function(doc){
+    h+='<div class="doc-sched"><div class="doc-sched-name">'+doc+'</div>';
+    h+='<div class="sched-table"><div class="sc sc-head"></div>';
+    WEEKDAYS.forEach(function(wd){h+='<div class="sc sc-head">'+wd.n+'</div>'});
+    ALL_SLOTS.forEach(function(slot){
+      h+='<div class="sc sc-slot">'+slot.replace(' -- ','—')+'</div>';
+      WEEKDAYS.forEach(function(wd){
+        var isActive=scheduleData.some(function(s){
+          return s.doctor===doc&&s.weekday===wd.v&&s.slot===slot&&s.active;
+        });
+        h+='<div class="sc '+(isActive?'sc-on':'sc-off')+'" onclick="toggleSlot(\''+doc+'\','+wd.v+',\''+slot+'\',this)"></div>';
+      });
+    });
+    h+='</div></div>';
+  });
+  document.getElementById('schedMgmt').innerHTML=h;
+}
+async function toggleSlot(doc,wd,slot,el){
+  var wasOn=el.classList.contains('sc-on');
+  el.className='sc '+(wasOn?'sc-off':'sc-on');
+  try{
+    await fetch(BASE+'/api/schedule?token='+encodeURIComponent(token),{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token:token,action:'toggle',doctor:doc,weekday:wd,slot:slot})
+    });
+    // Update local data
+    var idx=scheduleData.findIndex(function(s){return s.doctor===doc&&s.weekday===wd&&s.slot===slot});
+    if(idx>=0){scheduleData[idx].active=wasOn?0:1}
+    else{scheduleData.push({doctor:doc,weekday:wd,slot:slot,active:1})}
+  }catch(e){el.className='sc '+(wasOn?'sc-on':'sc-off')}
 }
 </script>
 </body>
