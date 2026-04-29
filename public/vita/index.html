@@ -1307,7 +1307,7 @@ document.getElementById("maxIcon").src="data:image/jpeg;base64,/9j/4AAQSkZJRgABA
 window.addEventListener("scroll",function(){document.getElementById("scrollTop").classList.toggle("visible",window.scrollY>500)});
 document.querySelectorAll(".doctor-card").forEach(function(card,i){card.style.cursor="pointer";card.addEventListener("click",function(){var sel=document.getElementById("doctorSelect");if(sel&&i<sel.options.length-1)sel.selectedIndex=i+1;document.getElementById("contact").scrollIntoView({behavior:"smooth"})})});
 function handleBooking(){var name=document.querySelector('[name="name"]').value;var phone=document.querySelector('[name="phone"]').value;if(!name||!phone)return;var btn=document.getElementById("bookBtn");btn.classList.add("loading");
-fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.querySelector('[name="doctor"]').value||"",date:((document.querySelector('[name="day"]')||{}).value||'')+' '+((document.querySelector('[name="month"]')||{}).options?document.querySelector('[name="month"]').options[document.querySelector('[name="month"]').selectedIndex].text:''),time:document.getElementById("timeHidden").value||"",service:document.querySelector('[name="service"]').value||"консультация",preorder:document.getElementById("preorderHidden").value||"",comment:document.querySelector('[name="comment"]').value||""})}).then(function(r){return r.json()}).then(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active");document.querySelector('[name="name"]').value="";document.querySelector('[name="phone"]').value="";document.querySelector('[name="comment"]').value=""}).catch(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active")})}
+fetch("/api/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site:"vita",name:name,phone:phone,doctor:document.querySelector('[name="doctor"]').value||"",date:((document.querySelector('[name="day"]')||{}).value||'')+' '+((document.querySelector('[name="month"]')||{}).options?document.querySelector('[name="month"]').options[document.querySelector('[name="month"]').selectedIndex].text:''),time:document.getElementById("timeHidden").value||"",service:document.querySelector('[name="service"]').value||"консультация",preorder:document.getElementById("preorderHidden").value||"",comment:document.querySelector('[name="comment"]').value||""})}).then(function(r){return r.json()}).then(function(d){btn.classList.remove("loading");if(d.error==="slot_taken"){alert(d.message||"Слот занят");fetch("/api/slots").then(function(r){return r.json()}).then(function(j){if(j.ok){bookedSlots=j.booked||[];doctorSchedule=j.schedule||[]}updateSlots()});return}document.getElementById("successModal").classList.add("active");document.querySelector('[name="name"]').value="";document.querySelector('[name="phone"]').value="";document.querySelector('[name="comment"]').value=""}).catch(function(){btn.classList.remove("loading");document.getElementById("successModal").classList.add("active")})}
 function showCartForm(){document.getElementById("cartCheckoutBtn").style.display="none";document.getElementById("cartForm").classList.add("show")}
 function hideCartForm(){document.getElementById("cartCheckoutBtn").style.display="";document.getElementById("cartForm").classList.remove("show")}
 function submitCartOrder(){var name=document.getElementById("cfName").value;var phone=document.getElementById("cfPhone").value;if(!name||!phone)return;
@@ -1317,11 +1317,16 @@ toggleCart();hideCartForm();document.getElementById("successModal").classList.ad
 
 // Slot picker
 var bookedSlots = [];
+var doctorSchedule = [];
 var ALL_TIMES = ['8:00 -- 10:00','10:00 -- 12:00','12:00 -- 14:00','14:00 -- 16:00','16:00 -- 18:00','18:00 -- 21:00'];
+var WEEKDAY_MAP = {'Вс':0,'Пн':1,'Вт':2,'Ср':3,'Чт':4,'Пт':5,'Сб':6};
 
-// Fetch booked slots on load
+// Fetch schedule + booked slots on load
 fetch('/api/slots').then(function(r){return r.json()}).then(function(j){
-  if(j.ok) bookedSlots = j.slots;
+  if(j.ok){
+    bookedSlots = j.booked || [];
+    doctorSchedule = j.schedule || [];
+  }
 }).catch(function(){});
 
 // Listen for doctor/date changes
@@ -1358,12 +1363,31 @@ function updateSlots(){
   var months = ['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   var dateStr = day + ' ' + months[monthIdx];
   var docName = doctor.split(' --')[0].trim();
+  var docFirst = docName.split(' ')[0];
 
+  // Get weekday from day+month (use current year)
+  var yr = new Date().getFullYear();
+  var testDate = new Date(yr, monthIdx - 1, parseInt(day));
+  var wd = testDate.getDay();
+  if(wd === 0) wd = 0; // Sunday=0
+
+  // Get doctor's working slots for this weekday
+  var workSlots = doctorSchedule.filter(function(s){
+    return s.doctor.indexOf(docFirst) >= 0 && s.weekday === (wd === 0 ? 7 : wd);
+  }).map(function(s){ return s.slot; });
+
+  // Get booked slots for this doctor+date
   var busy = bookedSlots.filter(function(s){
-    return s.date === dateStr && s.doctor.indexOf(docName.split(' ')[0]) >= 0;
+    return s.date === dateStr && s.doctor.indexOf(docFirst) >= 0;
   }).map(function(s){ return s.time; });
 
-  picker.innerHTML = ALL_TIMES.map(function(t){
+  if(!workSlots.length){
+    picker.innerHTML = '<div class="slot-hint">Врач не работает в этот день</div>';
+    document.getElementById('timeHidden').value = '';
+    return;
+  }
+
+  picker.innerHTML = workSlots.map(function(t){
     var isBusy = busy.indexOf(t) >= 0;
     return '<button type="button" class="slot-btn' + (isBusy ? ' busy' : '') + '" ' +
       (isBusy ? 'disabled' : 'onclick="pickSlot(this,\''+t+'\')"') +
